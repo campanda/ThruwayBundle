@@ -6,6 +6,7 @@ use Psr\Log\NullLogger;
 use React\Promise\Deferred;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Serializer\Serializer;
+use Thruway\Authentication\ClientWampCraAuthenticator;
 use Thruway\ClientSession;
 use Thruway\Logging\Logger;
 use Thruway\Peer\Client;
@@ -47,7 +48,7 @@ class ClientManager
      * @return \React\Promise\Promise
      * @throws \Exception
      */
-    public function publish($topicName, $arguments, array $argumentsKw = [], $options = null)
+    public function publish($topicName, $arguments, array $argumentsKw = [], $options = null, bool $authenticated = false)
     {
         $arguments   = $arguments ?: [$arguments];
         $argumentsKw = $argumentsKw ?: [$argumentsKw];
@@ -72,7 +73,7 @@ class ClientManager
         Logger::set(new NullLogger()); //So logs don't show up on the web page
 
         //If we don't already have a long running client, get a short lived one.
-        $client               = $this->getShortClient();
+        $client               = $this->getShortClient($authenticated);
         $options->acknowledge = true;
         $deferrer             = new Deferred();
 
@@ -101,7 +102,7 @@ class ClientManager
      * @return \React\Promise\Promise
      * @throws \Exception
      */
-    public function call($procedureName, $arguments, $argumentsKw = [], $options = null)
+    public function call($procedureName, $arguments, $argumentsKw = [], $options = null, bool $authenticated = false)
     {
         $arguments   = $arguments ?: [$arguments];
         $argumentsKw = $argumentsKw ?: [$argumentsKw];
@@ -118,7 +119,7 @@ class ClientManager
         Logger::set(new NullLogger()); //So logs don't show up on the web page
 
         //If we don't already have a long running client, get a short lived one.
-        $client   = $this->getShortClient();
+        $client   = $this->getShortClient($authenticated);
         $deferrer = new Deferred();
 
         $client->on('open', function (ClientSession $session, TransportInterface $transport) use ($deferrer, $procedureName, $arguments, $argumentsKw, $options) {
@@ -140,14 +141,20 @@ class ClientManager
     }
 
     /**
+     * @param bool $authenticated
      * @return Client
      * @throws \Exception
      */
-    private function getShortClient()
+    private function getShortClient(bool $authenticated = false)
     {
         $client = new Client($this->config['realm']);
         $client->setAttemptRetry(false);
-        $client->addTransportProvider(new PawlTransportProvider($this->config['trusted_url']));
+        $url = $authenticated?$this->config['url']:$this->config['trusted_url'];
+        if ($authenticated) {
+            $client->setAuthId($this->container->getParameter('basic.webMessaging.engineAuth.serviceAuthId'));
+            $client->setAuthMethods(['engine']);
+        }
+        $client->addTransportProvider(new PawlTransportProvider($url));
 
         return $client;
     }

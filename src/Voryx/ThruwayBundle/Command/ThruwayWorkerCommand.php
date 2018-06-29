@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Thruway\Transport\PawlTransportProvider;
+use Voryx\ThruwayBundle\Annotation\Worker;
 
 class ThruwayWorkerCommand extends ContainerAwareCommand
 {
@@ -59,14 +60,22 @@ class ThruwayWorkerCommand extends ContainerAwareCommand
             $config           = $this->getContainer()->getParameter('voryx_thruway');
             $loop             = $this->getContainer()->get('voryx.thruway.loop');
             $kernel           = $this->getContainer()->get('wamp_kernel');
+    
+            /**
+             * @var Worker $workerAnnotation
+             */
             $workerAnnotation = $kernel->getResourceMapper()->getWorkerAnnotation($name);
 
             if ($workerAnnotation) {
                 $realm = $workerAnnotation->getRealm() ?: $config['realm'];
-                $url   = $workerAnnotation->getUrl() ?: $config['url'];
+                if ($workerAnnotation->getUrl()) {
+                    $url = $workerAnnotation->getUrl();
+                }  else {
+                    $url = $workerAnnotation->isTrusted() ? $config['trusted_url']:$config['url'];
+                }
             } else {
                 $realm = $config['realm'];
-                $url   = $config['url'];
+                $url   = $config['trusted_url'];
             }
 
             $transport = new PawlTransportProvider($url);

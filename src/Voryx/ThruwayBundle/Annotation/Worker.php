@@ -23,12 +23,26 @@ class Worker implements AnnotationInterface
      * @var string
      */
     protected $value;
-
+    
+    /**
+     * @var int|null
+     */
     protected $maxProcesses;
-
+    
+    /**
+     * @var string|null
+     */
     protected $realm;
-
+    
+    /**
+     * @var string|null
+     */
     protected $url;
+    
+    /**
+     * @var bool|null
+     */
+    protected $trusted = true;
 
     /**
      * @param $options
@@ -47,41 +61,48 @@ class Worker implements AnnotationInterface
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->value;
     }
+    
+    /**
+     * @return bool
+     */
+    public function isTrusted(): bool {
+        return $this->trusted===null?false:$this->trusted;
+    }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getMaxProcesses()
+    public function getMaxProcesses(): int
     {
         return $this->maxProcesses ?: 1;
     }
 
     /**
-     * @return mixed
+     * @return string|nulls
      */
-    public function getRealm()
+    public function getRealm(): ?string
     {
         return $this->realm;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getUrl()
+    public function getUrl(): ?string
     {
         return $this->url;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getWorker()
+    public function getWorker(): string
     {
         return $this->value;
     }

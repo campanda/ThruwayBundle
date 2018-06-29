@@ -1,0 +1,14 @@
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    App\Wall\:
+        resource: '../../*'
+        exclude: '../../{Entity,Migrations,Tests,Kernel.php,DTO,Exception,Util,Context}'
+
+    App\Wall\Service\WallService:
+        tags:
+            - { name: monolog.logger, channel: app.wall.service.wall }
