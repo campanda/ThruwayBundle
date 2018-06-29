@@ -21,6 +21,11 @@
       "name": "Matt Bonneau",
       "email": "matt@bonneau.net",
       "role": "Developer"
+    },
+    {
+      "name": "Helmut Hoffer von Ankershoffen",
+      "email": "hhva@campanda.com",
+      "role": "Developer"
     }
   ],
   "autoload": {
