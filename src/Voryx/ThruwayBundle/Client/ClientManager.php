@@ -151,8 +151,8 @@ class ClientManager
         $client->setAttemptRetry(false);
         $url = $authenticated?$this->config['url']:$this->config['trusted_url'];
         if ($authenticated) {
-            $client->setAuthId($this->container->getParameter('basic.webMessaging.engineAuth.serviceAuthId'));
-            $client->setAuthMethods(['engine']);
+            $client->setAuthId($this->container->getParameter('basic.webMessaging.sessionAuthentication.serviceAuthId'));
+            $client->setAuthMethods(['session']);
         }
         $client->addTransportProvider(new PawlTransportProvider($url));
 
