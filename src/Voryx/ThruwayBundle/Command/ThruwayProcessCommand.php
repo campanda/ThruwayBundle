@@ -288,9 +288,7 @@ class ThruwayProcessCommand extends ContainerAwareCommand
         }
 
         //Default Symfony Command Workers
-        $defaultWorkers = [
-            'router' => 'thruway:router:start'
-        ];
+        $defaultWorkers = [];
 
         $onetimeWorkers = array_merge($defaultWorkers, $this->config['workers']['symfony_commands']);
 
