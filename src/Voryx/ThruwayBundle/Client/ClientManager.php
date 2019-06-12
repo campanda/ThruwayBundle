@@ -72,26 +72,31 @@ class ClientManager
 
         Logger::set(new NullLogger()); //So logs don't show up on the web page
 
-        //If we don't already have a long running client, get a short lived one.
+        //If we don't already have a long running client, get a short lived one.$deferrer
         $client               = $this->getShortClient($authenticated);
         $options->acknowledge = true;
         $deferrer             = new Deferred();
 
-        $client->on('open', function (ClientSession $session, TransportInterface $transport) use ($deferrer, $topicName, $arguments, $argumentsKw, $options) {
-            $session->publish($topicName, $arguments, $argumentsKw, $options)->then(
-                function () use ($deferrer, $transport) {
-                    $transport->close();
-                    $deferrer->resolve();
-                });
-        });
+        try {
+            $client->on('open', function (ClientSession $session, TransportInterface $transport) use ($deferrer, $topicName, $arguments, $argumentsKw, $options) {
+                $session->publish($topicName, $arguments, $argumentsKw, $options)->then(
+                    function () use ($deferrer, $transport) {
+                        $transport->close();
+                        $deferrer->resolve();
+                    });
+            });
 
-        $client->on('error', function ($error) use ($topicName) {
-            $this->container->get('logger')->addError("Got the following error when trying to publish to '{$topicName}': {$error}");
-        });
+            $client->on('error', function ($error) use ($topicName) {
+                $this->container->get('logger')->addError("Got the following error when trying to publish to '{$topicName}': {$error}");
+            });
 
-        $client->start();
+            $client->start();
 
-        return $deferrer->promise();
+            return $deferrer->promise();
+        } catch (\Exception $e) {
+            $client->getSession()->shutdown();
+            throw $e;
+        }
     }
 
     /**
