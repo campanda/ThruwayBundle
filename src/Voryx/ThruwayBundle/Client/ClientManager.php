@@ -83,11 +83,16 @@ class ClientManager
                     function () use ($deferrer, $transport) {
                         $transport->close();
                         $deferrer->resolve();
+                    })
+                    ->otherwise(function ($reason) use ($transport) {
+                        $this->getLogger()->addError('Thruway client manager error: ' . (string) $reason);
+                        $transport->close();
                     });
+
             });
 
             $client->on('error', function ($error) use ($topicName) {
-                $this->container->get('logger')->addError("Got the following error when trying to publish to '{$topicName}': {$error}");
+                $this->getLogger()->addError("Got the following error when trying to publish to '{$topicName}': {$error}");
             });
 
             $client->start();
@@ -97,6 +102,11 @@ class ClientManager
             $client->getSession()->shutdown();
             throw $e;
         }
+    }
+
+    private function getLogger()
+    {
+        return $this->container->get('logger');
     }
 
     /**
